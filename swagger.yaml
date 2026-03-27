@@ -1,0 +1,304 @@
+openapi: 3.0.3
+info:
+  title: TaskFlow CloudDrive API
+  version: 1.0.0
+  description: API para la plataforma TaskFlow - Seminario de Sistemas 1
+
+paths:
+  /api/v1/signup:
+    post:
+      summary: Registro de usuario
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SignupRequest'
+      responses:
+        '201':
+          description: Usuario registrado correctamente
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthResponse'
+        '400':
+          description: |
+            Error en la solicitud. Posibles causas:
+            - Campos obligatorios faltantes
+            - Formato inválido de correo electrónico
+        '500':
+          description: Error al guardar datos en BD
+
+  /api/v1/login:
+    post:
+      summary: Inicio de sesión
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+      responses:
+        '200':
+          description: Login exitoso
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthResponse'
+
+  /api/v1/tasks:
+    get:
+      summary: Obtener listado de tareas
+      parameters:
+      - name: id_usuario
+        in: query
+        required: true
+        schema:
+          type: integer
+        description: ID del usuario
+      responses:
+        '200':
+          description: Lista de tareas
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TasksResponse'
+
+    post:
+      summary: Crear una nueva tarea
+      parameters:
+      - name: id_usuario
+        in: query
+        required: true
+        schema:
+          type: integer
+        description: ID del usuario
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateTaskRequest'
+      responses:
+        '201':
+          description: Tarea creada correctamente
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenericResponse'
+
+  /api/v1/tasks/{id}:
+    patch:
+      tags:
+        - Tasks
+      summary: Actualizar tarea 
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateTaskRequest'
+      responses:
+        '200':
+          description: Tarea actualizada correctamente
+
+    delete:
+      summary: Eliminar una tarea
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '204':
+          description: Tarea eliminada correctamente
+
+
+  /api/v1/files:
+    get:
+      summary: Obtener listado de archivos
+      parameters:
+      - name: id_usuario
+        in: query
+        required: true
+        schema:
+          type: integer
+        description: ID del usuario
+      responses:
+        '200':
+          description: Lista de archivos
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FilesResponse'
+    post:
+      summary: Registrar archivo subido previamente
+      parameters:
+      - name: id_usuario
+        in: query
+        required: true
+        schema:
+          type: integer
+        description: ID del usuario
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RegisterFileRequest'
+      responses:
+        '201':
+          description: Archivo registrado correctamente
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenericResponse'
+
+components:
+  schemas:
+
+    GenericResponse:
+      type: object
+      properties:
+        ok:
+          type: boolean
+        message:
+            type: string
+
+    SignupRequest:
+      type: object
+      required:
+        - username
+        - email
+        - password
+        - profileImageUrl
+      properties:
+        username:
+          type: string
+          maxLength: 50
+        email:
+          type: string
+          format: email
+          maxLength: 50
+        password:
+          type: string
+          format: password
+        profileImageUrl:
+          type: string
+          maxLength: 500
+
+    AuthResponse:
+      type: object
+      properties:
+        ok:
+          type: boolean
+        message:
+          type: string
+        token:
+          type: string
+
+    LoginRequest:
+      type: object
+      required:
+        - username
+        - password
+      properties:
+        username:
+          type: string
+          maxLength: 50
+        password:
+          type: string
+          format: password
+        
+
+    CreateTaskRequest:
+      type: object
+      required:
+        - title
+      properties:
+        title:
+          type: string
+          maxLength: 100
+        description:
+          type: string
+          maxLength: 300
+
+    UpdateTaskRequest:
+      type: object
+      description: Permite actualizar uno o varios campos de la tarea
+      properties:
+        title:
+          type: string
+        description:
+          type: string
+        is_completed:
+          type: boolean
+
+    RegisterFileRequest:
+      type: object
+      required:
+        - fileUrl
+      properties:
+        fileName:
+          type: string
+        fileUrl:
+          type: string
+          format: uri
+        
+
+    FileResponse:
+      type: object
+      properties:
+        id:
+          type: integer
+        fileName:
+          type: string
+        cloudName:
+          type: string
+        fileType:
+          type: string
+        fileUrl:
+          type: string
+          format: uri
+        provider:
+          type: string
+          enum:
+            - AWS
+            - AZURE
+
+    FilesResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/FileResponse'
+
+
+
+    TaskResponse:
+      type: object
+      properties:
+        title:
+          type: string
+        description:
+          type: string
+
+    TasksResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/TaskResponse'
