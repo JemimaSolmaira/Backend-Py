@@ -28,6 +28,12 @@ def valid_email(email: str) -> bool:
     pattern = r'^[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9._]+\.[a-zA-Z]{2,}$'
     return bool(re.match(pattern, email))
 
+def is_valid_int(value):
+    try:
+        int(value)
+        return True
+    except (TypeError, ValueError):
+        return False
 
 # HEALTH CHECK - GET /health
 @app.route("/check")
@@ -343,12 +349,12 @@ def listar_archivos():
         return jsonify({"ok": False,"message": f"Error al listar archivos: {str(error)}"}), 500
 
 
-"""if __name__ == "__main__":
-    app.run(debug=True)"""
-
-
 if __name__ == "__main__":
+    app.run(debug=True)
+
+    """
+  if __name__ == "__main__":
     port = int(os.getenv("PORT", 3000))
     print(f"Servidor Python corriendo en puerto {port}")
     app.run(host="0.0.0.0", port=port, debug=False)  
-
+    """
